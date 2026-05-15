@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tecnoclima Core Input</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b0f1a; --surf:#111827; --card:#161f2e; --bord:#1e2d44; --bord2:#243552;
+  --brand:#2E6DA4; --brand2:#4A90C4; --brand3:#1B3A5C; --brand-lt:#0d1e30;
+  --brand-glow:rgba(46,109,164,.25);
+  --acc:#f59e0b; --acc2:#38bdf8; --acc3:#34d399; --acc4:#f87171; --acc5:#a78bfa;
+  --txt:#e2e8f0; --muted:#64748b; --subtle:#334155;
+  --red:#ef4444; --red-lt:rgba(239,68,68,.12);
+  --orange:#f97316; --green:#10b981; --green-lt:rgba(16,185,129,.12);
+  --yellow:#f59e0b; --yellow-lt:rgba(245,158,11,.12);
+  --inp:#0b0f1a; --r:10px; --r2:6px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;font-size:13px}
+
+header{
+  background:linear-gradient(90deg,#0d1520,#111f33);
+  border-bottom:1px solid var(--bord2);
+  padding:0 24px;height:58px;display:flex;align-items:center;gap:14px;
+  position:sticky;top:0;z-index:300;box-shadow:0 2px 20px rgba(0,0,0,.4);
+}
+.logo-mark{
+  width:36px;height:36px;border-radius:8px;
+  background:linear-gradient(135deg,var(--brand2),var(--brand));
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:#fff;
+  box-shadow:0 0 16px var(--brand-glow);letter-spacing:-1px;
+}
+.brand-text h1{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:#fff;letter-spacing:-.5px}
+.brand-text p{font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-top:2px}
+.payoff{font-size:11px;color:var(--acc);font-style:italic;opacity:.85}
+.h-spacer{flex:1}
+.h-badge{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.04);border:1px solid var(--bord2);border-radius:20px;padding:5px 12px;font-size:10px;color:var(--muted)}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--muted)}
+.dot.live{background:var(--acc3);box-shadow:0 0 6px var(--acc3)}
+
+.g2{display:grid;grid-template-columns:330px 1fr;gap:16px;align-items:start}
+.g2e{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+
+.panel{background:var(--card);border:1px solid var(--bord);border-radius:var(--r);overflow:hidden}
+.ph{padding:11px 16px;border-bottom:1px solid var(--bord);display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.02)}
+.ph .pi{font-size:14px}
+.ph h3{font-family:'Syne',sans-serif;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--brand2)}
+.pb{padding:14px 16px}
+
+.slabel{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:1.8px;color:var(--muted);margin:14px 0 8px;display:flex;align-items:center;gap:8px}
+.slabel::after{content:'';flex:1;height:1px;background:var(--bord)}
+.slabel:first-child{margin-top:0}
+.field{margin-bottom:8px}
+.field label{display:block;font-size:10px;color:var(--muted);margin-bottom:3px;font-weight:500}
+.fg{display:flex;gap:5px;align-items:center}
+.fg2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.field input,.field select{width:100%;background:var(--inp);border:1px solid var(--bord);border-radius:var(--r2);padding:7px 10px;color:var(--txt);font-family:'DM Mono',monospace;font-size:11px;outline:none;transition:border-color .2s}
+.field input:focus,.field select:focus{border-color:var(--brand2);box-shadow:0 0 0 2px var(--brand-glow)}
+.unit{font-size:10px;color:var(--muted);white-space:nowrap;font-family:'DM Mono',monospace}
+
+.btn{padding:9px 14px;border:none;border-radius:var(--r2);font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn-w{width:100%}
+.btn-primary{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;box-shadow:0 2px 12px var(--brand-glow)}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 4px 20px var(--brand-glow)}
+.btn-amber{background:linear-gradient(135deg,var(--acc),#d97706);color:#000;font-weight:700}
+.btn-amber:hover{transform:translateY(-1px)}
+.btn-ghost{background:transparent;color:var(--brand2);border:1px solid var(--bord2)}
+.btn-ghost:hover{background:var(--brand-lt);border-color:var(--brand2)}
+.btn:disabled{opacity:.35;cursor:not-allowed;transform:none!important}
+.spin{width:11px;height:11px;border:2px solid transparent;border-top-color:#fff;border-radius:50%;animation:sp .6s linear infinite;display:none}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+#map{height:210px;border-radius:var(--r2);overflow:hidden;border:1px solid var(--bord)}
+.map-row{display:flex;gap:6px;margin-top:6px}
+.map-row input{flex:1;background:var(--inp);border:1px solid var(--bord);border-radius:var(--r2);padding:6px 8px;color:var(--txt);font-family:'DM Mono',monospace;font-size:11px;outline:none}
+.map-row input:focus{border-color:var(--brand2)}
+.farm-chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.chip{padding:3px 9px;border-radius:12px;font-size:9px;font-weight:600;cursor:pointer;background:var(--brand-lt);color:var(--brand2);border:1px solid var(--bord2);transition:all .15s}
+.chip:hover{background:var(--brand);color:#fff;border-color:var(--brand)}
+
+.cstrip{background:var(--card);border:1px solid var(--bord);border-radius:var(--r);padding:12px 16px;margin-bottom:12px;display:none}
+.cstrip.vis{display:block}
+.cchip{display:inline-block;margin-right:12px}
+.cv{font-family:'DM Mono',monospace;font-size:14px;font-weight:700;color:var(--acc)}
+.cl{font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+
+.stbl{width:100%;border-collapse:collapse;font-size:10px}
+.stbl th,.stbl td{padding:5px 8px;text-align:left;border-bottom:1px solid var(--bord)}
+.stbl th{font-size:8px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-weight:700}
+.stbl tr:hover{background:rgba(255,255,255,.03)}
+.geo-row.selected{background:rgba(245,158,11,.12)!important;outline:1px solid var(--acc)}
+
+#toast{display:none;position:fixed;bottom:30px;left:50%;transform:translateX(-50%);padding:12px 24px;border-radius:8px;font-size:12px;font-weight:600;color:#fff;background:rgba(17,24,39,.95);border:1px solid var(--bord2);z-index:999;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+#toast.ok{border-color:var(--acc3)}
+
+.main-content{padding:20px 24px;max-width:1200px;margin:0 auto}
+
+@media(max-width:900px){.g2,.g2e,.g3,.g4{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-mark">TC</div>
+  <div class="brand-text"><h1>Tecnoclima Core Input</h1><p>Poultry House Configurator</p></div>
+  <span class="payoff" style="margin-left:8px">Design. Dimension. Deliver.</span>
+  <div class="h-spacer"></div>
+  <div class="h-badge"><div class="dot" id="apidot"></div><span id="apist">Ready</span></div>
+  <!-- Import/Export JSON -->
+  <div style="display:flex;align-items:center;gap:4px;margin-left:8px">
+    <button onclick="saveProject()"
+      style="padding:4px 10px;border:1px solid var(--bord2);border-radius:4px 0 0 4px;background:rgba(56,189,248,.12);
+             color:var(--acc2);font-size:9px;font-weight:700;cursor:pointer;white-space:nowrap"
+      title="Esporta progetto come file .json">💾 Esporta JSON</button>
+    <button onclick="$('project-file-input').click()"
+      style="padding:4px 10px;border:1px solid var(--bord2);border-left:none;border-radius:0 4px 4px 0;background:transparent;
+             color:var(--muted);font-size:9px;font-weight:700;cursor:pointer;white-space:nowrap"
+      title="Importa progetto da file .json">📂 Importa</button>
+    <input type="file" id="project-file-input" accept=".json,.rao" style="display:none" onchange="loadProjectFile(event)">
+    <span id="save-badge" style="font-size:8px;color:var(--muted);opacity:0.4;transition:opacity .5s;white-space:nowrap;margin-left:2px">—</span>
+  </div>
+</header>
+
+<div class="main-content">
+
+<!-- ═══ PROJECT TITLE ═══ -->
+<div class="panel" style="margin-bottom:14px">
+  <div class="ph"><span class="pi">📋</span><h3>Progetto</h3></div>
+  <div class="pb">
+    <div class="field"><label>Titolo progetto</label>
+      <input id="proj_title" type="text" placeholder="es. Allevamento Rossi — Trento 2025" style="font-family:'DM Sans',sans-serif;font-size:12px">
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MAIN INPUT GRID ═══ -->
+<div class="g2">
+<!-- LEFT COLUMN -->
+<div>
+  <div class="panel">
+    <div class="ph"><span class="pi">🗺</span><h3>Location — click map or pick example</h3></div>
+    <div class="pb">
+      <div id="map"></div>
+      <div class="map-row">
+        <input id="lat" type="number" placeholder="Latitude" value="46.07" step="0.0001">
+        <input id="lon" type="number" placeholder="Longitude" value="11.12" step="0.0001">
+      </div>
+      <div class="farm-chips" style="margin-top:7px">
+        <span class="chip" data-lat="46.07" data-lon="11.12">🇮🇹 Trento</span>
+        <span class="chip" data-lat="32.308" data-lon="43.855">🇮🇶 Kerbala</span>
+        <span class="chip" data-lat="19.283" data-lon="-96.326">🇲🇽 Veracruz</span>
+        <span class="chip" data-lat="10.762" data-lon="106.660">🇻🇳 Ho Chi Minh</span>
+        <span class="chip" data-lat="-23.550" data-lon="-46.633">🇧🇷 São Paulo</span>
+        <span class="chip" data-lat="6.524" data-lon="3.379">🇳🇬 Lagos</span>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:8px">
+        <button class="btn btn-ghost" id="gps-btn" style="flex:1">📡 GPS</button>
+        <button class="btn btn-amber" id="fetch-btn" style="flex:2">
+          <span class="spin" id="sp"></span>🌡 Fetch ERA5 (optional)
+        </button>
+      </div>
+      <div style="margin-top:6px;font-size:9px;color:var(--muted);line-height:1.6">
+        💡 <strong style="color:var(--acc)">Clima stimato caricato automaticamente</strong> al click sulla mappa.<br>
+        "Fetch ERA5" migliora la precisione con dati reali 1991–2020 (richiede internet, ~5s).
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-top:12px">
+    <div class="ph"><span class="pi">🏗</span><h3>Geometria Edificio</h3></div>
+    <div class="pb">
+      <div class="fg2">
+        <div class="field"><label>Lunghezza (L)</label><div class="fg"><input id="blen" type="number" value="100"><span class="unit">m</span></div></div>
+        <div class="field"><label>Larghezza (W)</label><div class="fg"><input id="bwid" type="number" value="16"><span class="unit">m</span></div></div>
+        <div class="field"><label>H gronda</label><div class="fg"><input id="beave" type="number" value="2.4" step=".1"><span class="unit">m</span></div></div>
+        <div class="field"><label>H colmo (H1)</label><div class="fg"><input id="hridge" type="number" value="3.5" step=".1"><span class="unit">m</span></div></div>
+      </div>
+      <div class="field">
+        <label>Numero di falde del tetto</label>
+        <div style="display:flex;gap:8px;margin-top:4px">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:7px 14px;border:1px solid var(--bord);border-radius:var(--r2);font-size:11px;font-weight:600;transition:all .15s" id="pitch1-lbl">
+            <input type="radio" name="roofpitch" id="pitch1" value="1" style="accent-color:var(--brand2)">
+            <span>🏠 1 falda</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:7px 14px;border:1px solid var(--bord);border-radius:var(--r2);font-size:11px;font-weight:600;transition:all .15s" id="pitch2-lbl">
+            <input type="radio" name="roofpitch" id="pitch2" value="2" checked style="accent-color:var(--brand2)">
+            <span>🏠 2 falde</span>
+          </label>
+        </div>
+      </div>
+      <div id="roof-diagram" style="margin:8px 0;padding:8px;background:rgba(255,255,255,.03);border-radius:var(--r2);border:1px solid var(--bord)">
+        <svg id="roof-svg" width="100%" height="90" viewBox="0 0 300 90" style="display:block"></svg>
+        <div style="font-size:9px;color:var(--muted);margin-top:4px;text-align:center">Sezione frontale capannone (lato corto)</div>
+        <div id="acs-display" style="font-size:10px;font-weight:700;color:var(--acc2);text-align:center;margin-top:2px"></div>
+      </div>
+      <div class="slabel">Materiale e trasmittanza termica</div>
+      <div class="field"><label>Materiale pareti + tetto</label>
+        <select id="mat_sel" onchange="updateUfromMaterial()">
+          <option value="0.44">Pannello sandwich sp. 50mm — U=0.44</option>
+          <option value="0.35">Pannello sandwich sp. 60mm — U=0.35</option>
+          <option value="0.275" selected>Pannello sandwich sp. 80mm — U=0.275</option>
+          <option value="0.22">Pannello sandwich sp. 100mm — U=0.22</option>
+          <option value="0.714">Mattone porizzato sp. 350mm — U=0.714</option>
+          <option value="1.44">Mattone forato sp. 250mm — U=1.44</option>
+          <option value="1.5">Pannello prefabbricato sp. 150mm — U=1.5</option>
+          <option value="0.37">Rockwool sp. 100mm — U=0.37</option>
+          <option value="custom">Valore personalizzato</option>
+        </select>
+      </div>
+      <div class="field"><label>U-value (W/m²K)</label>
+        <div class="fg"><input id="uval" type="number" value="0.275" step=".01"><span class="unit">W/m²K</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-top:12px">
+    <div class="ph"><span class="pi">⚙️</span><h3>Design Targets & Equipment</h3></div>
+    <div class="pb">
+      <div class="slabel">Temperature setpoints</div>
+      <div class="fg2">
+        <div class="field"><label>T inside winter</label><div class="fg"><input id="tinw" type="number" value="18"><span class="unit">°C</span></div></div>
+        <div class="field"><label>T inside summer</label><div class="fg"><input id="tins" type="number" value="27"><span class="unit">°C</span></div></div>
+        <div class="field"><label>q_min base</label><div class="fg"><input id="qmin" type="number" value="0.10" step=".01"><span class="unit">m³/h·kg</span></div></div>
+        <div class="field"><label>v tunnel</label><div class="fg"><input id="vtun" type="number" value="2.5" step=".1"><span class="unit">m/s</span></div></div>
+        <div class="field"><label>v pad</label><div class="fg"><input id="vpad" type="number" value="1.27" step=".01"><span class="unit">m/s</span></div></div>
+        <div class="field"><label>Tipo pannello evaporativo</label>
+          <select id="pad_type" onchange="updatePadInfo()">
+            <option value="4545_7">4545/7 — α=45 β=45 (compromesso)</option>
+            <option value="1545_7">1545/7 — α=15 β=45 (bassa ΔP)</option>
+            <option value="3060_7">3060/7 — α=30 β=60 (su richiesta)</option>
+            <option value="4545_5">4545/5 — α=45 β=45 (alta efficienza)</option>
+          </select>
+        </div>
+        <div class="field"><label>Dimensioni pannello evaporativo</label>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted)">
+              <span>L =</span>
+              <span style="font-weight:700;color:var(--txt);font-family:'DM Mono',monospace">600 mm</span>
+              <span style="font-size:9px">(fisso)</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:4px">
+              <span style="font-size:10px;color:var(--muted)">H =</span>
+              <select id="pad_height" onchange="updatePadInfo()" style="background:var(--inp);border:1px solid var(--bord);border-radius:var(--r2);padding:5px 8px;color:var(--txt);font-family:'DM Mono',monospace;font-size:11px;outline:none">
+                <option value="1000">1000 mm</option>
+                <option value="1200" selected>1200 mm</option>
+                <option value="1500">1500 mm</option>
+                <option value="1800">1800 mm</option>
+                <option value="2000">2000 mm</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="field"><label>Spessore pannello</label>
+          <select id="pad_thick" onchange="updatePadInfo()">
+            <option value="50">50 mm</option>
+            <option value="100">100 mm</option>
+            <option value="150" selected>150 mm</option>
+            <option value="200">200 mm</option>
+          </select>
+        </div>
+        <div id="pad-info-box" style="font-size:9px;color:var(--muted);padding:6px 8px;background:rgba(56,189,248,.06);border-radius:var(--r2);border:1px solid rgba(56,189,248,.2);margin-top:-2px"></div>
+        <div class="field"><label>η heater</label><div class="fg"><input id="heta" type="number" value="0.92" step=".01"><span class="unit">–</span></div></div>
+      </div>
+      <div class="slabel">Fan selezione (ventilazione tunnel)</div>
+      <div class="field">
+        <label>Modello fan TCF 50</label>
+        <select id="fantun" onchange="onFanChange()">
+          <option value="pure">1 — Kamshin TCF 50 Pure</option>
+          <option value="shutter">2 — Kamshin TCF 50 Shutter ⭐</option>
+          <option value="cone">3 — Kamshin TCF 50 Cone</option>
+          <option value="cone_shutter" selected>4 — Kamshin TCF 50 Cone + Shutter ⭐</option>
+        </select>
+      </div>
+      <div id="shutter-note" style="padding:8px 10px;border-radius:var(--r2);font-size:9px;background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.3);color:var(--acc3);margin-top:-4px;margin-bottom:6px">
+        ✅ <strong>Shutter incluso</strong> — raccomandato per protezione meteo, riduzione infiltrazioni e miglior tenuta in pressione quando il fan è fermo.
+      </div>
+      <div id="no-shutter-note" style="padding:8px 10px;border-radius:var(--r2);font-size:9px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);color:var(--acc);margin-top:-4px;margin-bottom:6px;display:none">
+        ⚠️ <strong>Senza shutter</strong> — verificare protezione meteo esterna.
+      </div>
+      <div class="slabel">Heater family</div>
+      <div class="field"><select id="htype">
+        <option value="80">Supercikki 80 — 80 kW</option>
+        <option value="200" selected>Megacikki 200 — 200 kW</option>
+        <option value="400">Megacikki 400 — 400 kW</option>
+      </select></div>
+      <div class="field"><label>Fattore sicurezza risc.</label><div class="fg"><input id="heat_sf" type="number" value="1.5" step=".1" min="1" max="3"><span class="unit">×</span></div></div>
+      <div style="margin:6px 0 8px;padding:8px 10px;border:1px solid var(--bord2);border-radius:var(--r2);background:rgba(56,189,248,.03)">
+        <div style="display:flex;align-items:center;gap:8px">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:10px;font-weight:600;color:var(--txt)">
+            <input type="checkbox" id="humid_enabled" style="accent-color:var(--acc2)">
+            💧 Umidificazione interna (Q_humid)
+          </label>
+          <span id="humid_status" style="font-size:9px;padding:1px 8px;border-radius:8px;background:rgba(245,158,11,.12);color:var(--acc);font-weight:600">OFF</span>
+        </div>
+        <div id="humid_options" style="display:none;margin-top:6px">
+          <div style="font-size:9px;color:var(--muted);margin-bottom:4px">Calore latente per umidificazione brooding.</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <label style="font-size:9px;color:var(--muted)">Override manuale:</label>
+            <input id="humid_override" type="number" value="" min="0" step="0.1" placeholder="auto"
+              style="width:110px;padding:3px 6px;border:1px solid var(--bord);border-radius:3px;background:var(--inp);color:var(--txt);font-size:10px;font-family:inherit">
+            <span style="font-size:9px;color:var(--muted)">kW</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RIGHT COLUMN -->
+<div>
+  <div class="cstrip" id="cstrip">
+    <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center">
+      <div class="cchip"><div class="cv" id="cs-tw">—</div><div class="cl">T_ext min assoluta</div></div>
+      <div class="cchip"><div class="cv" id="cs-ts">—</div><div class="cl">T_ext max assoluta</div></div>
+      <div class="cchip"><div class="cv" id="cs-rh">—</div><div class="cl" id="cs-rh-lbl">RH estate</div></div>
+      <div class="cchip"><div class="cv" id="cs-loc">—</div><div class="cl">Location</div></div>
+      <canvas id="mchart" width="200" height="68" style="cursor:pointer" title="Clicca per modificare i dati mensili"></canvas>
+      <button onclick="toggleClimateTable()" id="btn-edit-climate"
+        style="padding:4px 10px;border:1px solid var(--bord2);border-radius:4px;background:rgba(56,189,248,.1);
+               color:var(--acc2);font-size:9px;font-weight:700;cursor:pointer;white-space:nowrap">
+        ✏️ Modifica dati
+      </button>
+    </div>
+    <div id="climate-table-wrap" style="display:none;width:100%;margin-top:10px">
+      <div style="font-size:9px;color:var(--muted);margin-bottom:6px;line-height:1.6">
+        <strong style="color:var(--acc2)">Dati mensili modificabili</strong> — 
+        <span style="color:var(--muted)">Fonte: <span id="cs-src">—</span></span><br>
+        <span style="color:rgba(245,158,11,.8)">⚠️ T_max e T_min sono le <strong>medie mensili</strong> di massima e minima giornaliera.</span>
+      </div>
+      <div style="overflow-x:auto">
+        <table id="climate-edit-table" style="border-collapse:collapse;font-size:10px;width:100%">
+          <thead>
+            <tr style="color:var(--muted);font-size:9px">
+              <th style="padding:4px 8px;text-align:left;border-bottom:1px solid var(--bord)">Mese</th>
+              <th style="padding:4px 6px;border-bottom:1px solid var(--bord);color:var(--acc)">T_max °C</th>
+              <th style="padding:4px 6px;border-bottom:1px solid var(--bord);color:var(--acc2)">T_min °C</th>
+              <th style="padding:4px 6px;border-bottom:1px solid var(--bord)">RH %</th>
+            </tr>
+          </thead>
+          <tbody id="climate-edit-body"></tbody>
+        </table>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:10px;align-items:center">
+        <button onclick="applyClimateEdits()"
+          style="padding:6px 16px;border:none;border-radius:var(--r2);background:var(--brand2);color:#fff;font-size:10px;font-weight:700;cursor:pointer">
+          ✅ Aggiorna dati
+        </button>
+        <button onclick="resetClimateEdits()"
+          style="padding:6px 12px;border:1px solid var(--bord);border-radius:var(--r2);background:transparent;color:var(--muted);font-size:9px;cursor:pointer">
+          ↺ Ripristina originali
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- GEOMETRY REFERENCE TABLE -->
+  <div class="panel" style="margin-top:12px">
+    <div class="ph"><span class="pi">🌍</span><h3>Geometrie tipiche per area geografica</h3></div>
+    <div class="pb" style="padding:10px 12px;overflow-x:auto">
+      <table class="stbl" style="font-size:9px;min-width:600px">
+        <thead><tr>
+          <th style="min-width:130px">Area <span style="font-weight:400;opacity:.7">(clicca per impostare)</span></th>
+          <th>L (m)</th><th>W (m)</th><th>H gr.</th><th>H col.</th><th>Falde</th><th>Broiler</th><th>Densità</th>
+        </tr></thead>
+        <tbody>
+          <tr class="geo-row" data-l="100" data-w="14" data-h="2.8" data-h1="4.5" data-pitch="2" data-birds="25000" data-lw="2.5" onclick="applyGeoPreset(this)" style="cursor:pointer" title="Clicca per applicare">
+            <td><strong>🇮🇹🇪🇸 Sud Europa</strong></td><td>80–120</td><td>12–16</td><td>2.5–3</td><td>4–5</td><td>2</td><td>20k–30k</td><td>15–20 p/m²</td></tr>
+          <tr class="geo-row" data-l="80" data-w="14" data-h="2.8" data-h1="4.0" data-pitch="2" data-birds="20000" data-lw="2.5" onclick="applyGeoPreset(this)" style="cursor:pointer" title="Clicca per applicare">
+            <td><strong>🇩🇪🇳🇱 Nord Europa</strong></td><td>60–100</td><td>12–16</td><td>2.5–3</td><td>3.5–4.5</td><td>2</td><td>15k–25k</td><td>15–20 p/m²</td></tr>
+          <tr class="geo-row" data-l="150" data-w="15" data-h="3.2" data-h1="5.0" data-pitch="2" data-birds="32000" data-lw="2.7" onclick="applyGeoPreset(this)" style="cursor:pointer" title="Clicca per applicare">
+            <td><strong>🇺🇸 USA</strong></td><td>120–180</td><td>12–18</td><td>2.8–3.5</td><td>4.5–5.5</td><td>2</td><td>25k–40k</td><td>18–20 p/m²</td></tr>
+          <tr class="geo-row" data-l="120" data-w="16" data-h="3.2" data-h1="5.0" data-pitch="2" data-birds="30000" data-lw="2.5" onclick="applyGeoPreset(this)" style="cursor:pointer" title="Clicca per applicare">
+            <td><strong>🇧🇷🇲🇽 America Sud</strong></td><td>100–160</td><td>14–20</td><td>3–3.5</td><td>4.5–5.5</td><td>2</td><td>25k–35k</td><td>18–20 p/m²</td></tr>
+          <tr class="geo-row" data-l="100" data-w="13" data-h="3.2" data-h1="4.2" data-pitch="1" data-birds="17000" data-lw="2.3" onclick="applyGeoPreset(this)" style="cursor:pointer;background:rgba(245,158,11,.07)" title="Clicca per applicare">
+            <td><strong>🇮🇶 Iraq/Kerbala</strong></td><td>80–110</td><td>12–14</td><td>3–3.5</td><td>4–4.5</td><td style="color:var(--acc);font-weight:700">1</td><td>15k–20k</td><td>18–22 p/m²</td></tr>
+          <tr class="geo-row" data-l="100" data-w="14" data-h="3.2" data-h1="4.8" data-pitch="2" data-birds="25000" data-lw="2.4" onclick="applyGeoPreset(this)" style="cursor:pointer" title="Clicca per applicare">
+            <td><strong>🌍 Africa/Nord Africa</strong></td><td>80–120</td><td>12–16</td><td>3–3.5</td><td>4.5–5</td><td>2</td><td>20k–30k</td><td>18–22 p/m²</td></tr>
+        </tbody>
+      </table>
+      <div style="font-size:8px;color:var(--muted);margin-top:6px">
+        👆 Clicca una riga per impostare i valori. ⚠️ Iraq: <strong>1 falda</strong>.
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-top:12px">
+    <div class="ph"><span class="pi">🐔</span><h3>Flock & Ciclo di Produzione</h3></div>
+    <div class="pb">
+      <div class="field"><label>Tipo animale</label>
+        <select id="btype" onchange="updateBreedInfo()">
+          <option value="broiler">🐔 Broiler (Cobb 500)</option>
+          <option value="ross308">🐔 Broiler (Ross 308)</option>
+          <option value="arbor">🐔 Broiler (Arbor Acres)</option>
+          <option value="ir_ps">🥚 Indian River PS — Parent Stock (Aviagen)</option>
+          <option value="ir_gp">🧬 Indian River GP — Grand Parent (Aviagen)</option>
+          <option value="pullet">🐣 Pullet / Gallina ovaiola</option>
+          <option value="turkey_light">🦃 Tacchino leggero (8-10 kg)</option>
+          <option value="turkey_heavy">🦃 Tacchino pesante (14-18 kg)</option>
+          <option value="layer_cage">🥚 Gallina ovaiola — Multipiano (Tecno/BDD)</option>
+        </select>
+        <div id="breed-info" style="font-size:12px;color:var(--muted);margin-top:4px;line-height:1.7;
+             padding:5px 8px;background:rgba(56,189,248,.05);border-radius:var(--r2);
+             border:1px solid rgba(56,189,248,.15)"></div></div>
+      <div class="fg2">
+        <div class="field"><label>N° animali</label><input id="nbirds" type="number" value="40000"></div>
+        <div class="field"><label>Peso target</label><div class="fg"><input id="lw" type="number" value="2.5" step=".1"><span class="unit">kg</span></div></div>
+        <div class="field"><label>Durata ciclo</label><div class="fg"><input id="cycle_days" type="number" value="35" min="20" max="70"><span class="unit">gg</span></div></div>
+        <div class="field"><label>Fermo/pulizia</label><div class="fg"><input id="down_days" type="number" value="10" min="3" max="30"><span class="unit">gg</span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Curva crescita animale -->
+  <div class="panel" style="margin-top:12px">
+    <div class="ph"><span class="pi">📈</span><h3 id="cobb-chart-title">Cobb 500 — Curva peso vivo g/capo per giorno</h3></div>
+    <div class="pb">
+      <canvas id="cobbMiniChart" height="160" style="width:100%"></canvas>
+      <div id="cobb-mini-info" style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.8"></div>
+    </div>
+  </div>
+</div>
+</div><!-- end .g2 -->
+
+<!-- ═══ BILL OF QUANTITY — PRODUCT LIST ═══ -->
+<div class="panel" style="margin-top:16px">
+  <div class="ph"><span class="pi">📦</span><h3>Bill of Quantity — Distinta Prodotti</h3></div>
+  <div class="pb">
+    <div style="font-size:9px;color:var(--muted);margin-bottom:10px;line-height:1.7;background:rgba(56,189,248,.05);border:1px solid rgba(56,189,248,.15);border-radius:var(--r2);padding:8px 10px">
+      ✏️ Inserisci i prodotti previsti per questo impianto. Aggiungi righe digitando nell'ultima riga vuota.
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;padding:8px 10px;background:rgba(230,126,34,.05);border:1px solid rgba(230,126,34,.15);border-radius:var(--r2)">
+      <label style="font-size:10px;font-weight:700;color:var(--txt);white-space:nowrap">🏠 Numero capannoni:</label>
+      <input id="n_houses" type="number" value="1" min="1" max="100" step="1"
+        style="width:60px;padding:4px 6px;border:1px solid var(--bord);border-radius:3px;background:var(--inp);color:var(--txt);font-size:12px;font-weight:700;text-align:center;font-family:inherit">
+      <span style="font-size:9px;color:var(--muted)">La distinta è per 1 capannone — il totale offerta moltiplica per questo valore.</span>
+    </div>
+    <div style="overflow-x:auto">
+      <table class="stbl" style="font-size:10px" id="boq-table">
+        <thead><tr>
+          <th style="min-width:140px">Articolo</th>
+          <th style="min-width:180px">Modello / Descrizione</th>
+          <th style="width:70px;text-align:center">Qty</th>
+          <th style="width:50px;text-align:center">Unità</th>
+          <th style="min-width:140px">Note</th>
+          <th style="width:30px"></th>
+        </tr></thead>
+        <tbody id="boq-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ OBSERVATIONS ═══ -->
+<div class="panel" style="margin-top:14px">
+  <div class="ph"><span class="pi">📝</span><h3>Note cliente / Osservazioni tecniche</h3></div>
+  <div class="pb">
+    <textarea id="boq_notes" rows="4" placeholder="Inserire qui eventuali note aggiuntive: specifiche cliente, condizioni particolari, varianti richieste, osservazioni tecniche..."
+      style="width:100%;padding:8px 10px;border:1px solid var(--bord);border-radius:var(--r2);background:var(--inp);color:var(--txt);font-size:11px;font-family:'DM Sans',sans-serif;line-height:1.6;resize:vertical;outline:none"></textarea>
+  </div>
+</div>
+
+<!-- ═══ EXPORT BUTTONS ═══ -->
+<div style="display:flex;gap:10px;margin-top:16px;margin-bottom:40px;justify-content:center">
+  <button class="btn btn-primary" onclick="saveProject()" style="padding:12px 28px;font-size:13px">
+    💾 Esporta progetto (.json)
+  </button>
+  <button class="btn btn-ghost" onclick="$('project-file-input').click()" style="padding:12px 28px;font-size:13px">
+    📂 Importa progetto (.json)
+  </button>
+</div>
+
+</div><!-- end .main-content -->
+
+<div id="toast"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const num=id=>parseFloat($(id).value)||0;
+let G={};
+let G_boq_custom=[];
+let charts={};
+
+// ═══ CHART.JS DEFAULTS ═══
+Chart.defaults.interaction = { mode:'index', intersect:false };
+Chart.defaults.hover = { mode:'index', intersect:false };
+Chart.defaults.plugins.tooltip.enabled = true;
+Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(15,23,42,.92)';
+Chart.defaults.plugins.tooltip.titleColor = '#f8fafc';
+Chart.defaults.plugins.tooltip.bodyColor = '#e2e8f0';
+Chart.defaults.plugins.tooltip.borderColor = 'rgba(30,45,68,.8)';
+Chart.defaults.plugins.tooltip.borderWidth = 1;
+Chart.defaults.plugins.tooltip.padding = 10;
+Chart.defaults.plugins.tooltip.boxPadding = 4;
+
+// ═══ FAN CATALOG ═══
+const FAN_CATALOG={
+  pure:{ label:'Kamshin TCF 50 Pure', hasShutter:false,
+    pts:[[0,48480,33.997,2.8],[30,40800,43.300,3.0],[50,34746,53.387,3.15],[90,21306,88.445,3.2]]},
+  shutter:{ label:'Kamshin TCF 50 Shutter', hasShutter:true,
+    pts:[[0,46648,36.609,2.9],[30,39242,46.520,3.1],[50,33419,56.387,3.2],[90,20492,97.704,3.4]]},
+  cone:{ label:'Kamshin TCF 50 Cone', hasShutter:false,
+    pts:[[0,54090,29.395,2.7],[30,45502,37.531,2.9],[50,38750,46.350,3.05],[90,23761,76.827,3.1]]},
+  cone_shutter:{ label:'Kamshin TCF 50 Cone + Shutter', hasShutter:true,
+    pts:[[0,51656,31.920,2.8],[30,43454,39.977,2.95],[50,37006,49.329,3.1],[90,22692,83.042,3.2]]}
+};
+const HEATERS={80:'Supercikki 80',200:'Megacikki 200',400:'Megacikki 400'};
+const MLBL_IT=['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
+
+// Chart colours
+const co={
+  amber:'#f59e0b',cyan:'#38bdf8',green:'#10b981',red:'#ef4444',
+  brand:'#2E6DA4',brand2:'#4A90C4',purple:'#a78bfa',orange:'#f97316',
+  txt:'#e2e8f0',muted:'#64748b',grid:'rgba(30,45,68,.6)'
+};
+
+// ═══ PAD CATALOG ═══
+const PAD_CATALOG={
+  '4545_7':{label:'4545/7',alpha:45,beta:45,desc:'Compromesso efficienza / perdita di carico',
+    dp:{50:[[0,0],[0.5,1],[1,5],[1.5,12],[2,20],[2.5,32],[3,46]],100:[[0,0],[0.5,3],[1,12],[1.5,25],[2,44],[2.5,68],[3,98]],150:[[0,0],[0.5,5],[1,20],[1.5,42],[2,74],[2.5,114],[3,163]],200:[[0,0],[0.5,7],[1,28],[1.5,60],[2,106],[2.5,165],[3,235]]},
+    eff:{50:[[0.5,85],[1,80],[1.5,76],[2,72],[2.5,68],[3,65]],100:[[0.5,92],[1,88],[1.5,84],[2,81],[2.5,78],[3,75]],150:[[0.5,95],[1,92],[1.5,89],[2,86],[2.5,83],[3,80]],200:[[0.5,97],[1,95],[1.5,92],[2,90],[2.5,87],[3,85]]}
+  },
+  '1545_7':{label:'1545/7',alpha:15,beta:45,desc:'Basse perdite di carico',
+    dp:{50:[[0,0],[1,2],[2,9],[3,20]],100:[[0,0],[1,4],[2,18],[3,42]],150:[[0,0],[1,7],[2,29],[3,67]],200:[[0,0],[1,10],[2,42],[3,97]]},
+    eff:{50:[[0.5,75],[1,70],[2,61],[3,54]],100:[[0.5,85],[1,80],[2,71],[3,64]],150:[[0.5,90],[1,86],[2,78],[3,71]],200:[[0.5,93],[1,90],[2,83],[3,77]]}
+  },
+  '3060_7':{label:'3060/7',alpha:30,beta:60,desc:'Su richiesta',
+    dp:{50:[[0,0],[1,4],[2,16],[3,37]],100:[[0,0],[1,8],[2,34],[3,77]],150:[[0,0],[1,13],[2,54],[3,122]],200:[[0,0],[1,19],[2,79],[3,178]]},
+    eff:{50:[[0.5,80],[1,76],[2,68],[3,61]],100:[[0.5,90],[1,86],[2,79],[3,72]],150:[[0.5,94],[1,91],[2,84],[3,78]],200:[[0.5,96],[1,93],[2,87],[3,82]]}
+  },
+  '4545_5':{label:'4545/5',alpha:45,beta:45,desc:'Elevata efficienza',
+    dp:{50:[[0,0],[1,7],[2,27],[3,62]],100:[[0,0],[1,15],[2,60],[3,136]],150:[[0,0],[1,23],[2,93],[3,208]],200:[[0,0],[1,34],[2,134],[3,300]]},
+    eff:{50:[[0.5,88],[1,84],[2,76],[3,69]],100:[[0.5,95],[1,92],[2,85],[3,79]],150:[[0.5,97],[1,95],[2,89],[3,84]],200:[[0.5,99],[1,97],[2,93],[3,89]]}
+  }
+};
+
+function padInterp(table, x){
+  if(x<=table[0][0]) return table[0][1];
+  if(x>=table[table.length-1][0]) return table[table.length-1][1];
+  for(let i=0;i<table.length-1;i++){
+    if(x>=table[i][0]&&x<=table[i+1][0]){
+      const f=(x-table[i][0])/(table[i+1][0]-table[i][0]);
+      return table[i][1]+f*(table[i+1][1]-table[i][1]);
+    }
+  }
+  return table[table.length-1][1];
+}
+function padDeltaP(typeKey,thickMm,v_ms){ const cat=PAD_CATALOG[typeKey]; if(!cat) return 30; return +padInterp(cat.dp[thickMm]||cat.dp[150],v_ms).toFixed(1); }
+function padEfficiency(typeKey,thickMm,v_ms){ const cat=PAD_CATALOG[typeKey]; if(!cat) return 0.80; return padInterp(cat.eff[thickMm]||cat.eff[150],v_ms)/100; }
+function updatePadInfo(){
+  const typeKey=($('pad_type')?.value)||'4545_7';
+  const thick=parseInt($('pad_thick')?.value)||150;
+  const padH_mm=parseInt($('pad_height')?.value)||1200;
+  const vp=num('vpad')||1.27;
+  const cat=PAD_CATALOG[typeKey]; if(!cat) return;
+  const dp=padDeltaP(typeKey,thick,vp);
+  const eff=(padEfficiency(typeKey,thick,vp)*100).toFixed(0);
+  const panelArea=(0.6*padH_mm/1000).toFixed(3);
+  const el=$('pad-info-box'); if(!el) return;
+  el.innerHTML=`<strong style="color:var(--acc2)">${cat.label}</strong> sp.${thick}mm — ${cat.desc}<br>`+
+    `Pannello 600×${padH_mm}mm = <strong>${panelArea} m²</strong> &nbsp;|&nbsp; `+
+    `ΔP @ ${vp} m/s = <strong style="color:var(--acc)">${dp} Pa</strong> &nbsp;|&nbsp; `+
+    `η = <strong style="color:var(--acc3)">${eff}%</strong>`;
+}
+['pad_type','pad_thick','pad_height','vpad'].forEach(id=>{
+  const el=$(id); if(el) el.addEventListener('change', updatePadInfo);
+});
+setTimeout(updatePadInfo, 400);
+
+// ═══ MATERIAL / U-VALUE ═══
+function updateUfromMaterial(){
+  const sel=$('mat_sel');
+  if(sel.value !== 'custom') $('uval').value = sel.value;
+}
+$('uval').addEventListener('input',()=>{ $('mat_sel').value='custom'; });
+
+// ═══ HUMID TOGGLE ═══
+function updateHumidToggle(){
+  const on = $('humid_enabled')?.checked;
+  const statusEl = $('humid_status');
+  const optEl = $('humid_options');
+  if(statusEl) {
+    statusEl.textContent = on ? 'ON' : 'OFF';
+    statusEl.style.background = on ? 'rgba(52,211,153,.15)' : 'rgba(245,158,11,.12)';
+    statusEl.style.color = on ? 'var(--acc3)' : 'var(--acc)';
+  }
+  if(optEl) optEl.style.display = on ? 'block' : 'none';
+}
+$('humid_enabled')?.addEventListener('change', updateHumidToggle);
+setTimeout(updateHumidToggle, 100);
+
+// ═══ BREED DATA ═══
+const BREED_DATA = {
+  broiler: { label:'Broiler Cobb 500', market:'Broiler convenzionale — mercato globale', slaughter:42, targetKg:2.8, defaultN:40000, defaultDown:10, densityKgMin:30, densityKgMax:38, isLayer:false,
+    weights: [57,73,91,111,134,160,189,220,256,294,336,381,429,480,535,593,655,719,786,856,929,1004,1082,1162,1244,1328,1414,1501,1590,1680,1771,1863,1956,2050,2144,2239,2334,2429,2524,2620,2715,2809,2904,2997,3091,3184,3276,3367,3457,3547,3635,3723,3809,3894,3978,3978]},
+  ross308: { label:'Broiler Ross 308', market:'Broiler convenzionale — Europa / UK', slaughter:42, targetKg:2.9, defaultN:40000, defaultDown:10, densityKgMin:30, densityKgMax:38, isLayer:false,
+    weights: [45,68,91,116,144,176,210,248,289,334,382,434,490,548,610,675,742,812,884,959,1035,1114,1194,1277,1361,1447,1534,1623,1712,1803,1895,1987,2080,2173,2267,2361,2455,2549,2643,2737,2830,2924,3017,3109,3200,3290,3378,3464,3548,3629,3706,3780,3849,3913,3972,3972]},
+  arbor: { label:'Broiler Arbor Acres Plus', market:'Broiler alta efficienza — USA / America Latina', slaughter:42, targetKg:2.85, defaultN:40000, defaultDown:10, densityKgMin:30, densityKgMax:38, isLayer:false,
+    weights: [50,70,93,118,146,178,213,251,294,339,389,442,499,558,621,687,755,827,900,977,1055,1136,1219,1304,1390,1479,1568,1659,1751,1844,1938,2033,2128,2224,2320,2416,2513,2609,2706,2802,2898,2994,3089,3183,3276,3368,3458,3545,3630,3712,3790,3865,3936,4003,4065,4065]},
+  ir_ps: { label:'Indian River Parent Stock', market:'Riproduttori PS', slaughter:455, targetKg:4.0, defaultN:6000, defaultDown:21, densityKgMin:18, densityKgMax:28, isLayer:false, isBreeder:true,
+    weights: [57,71,86,101,116,130,145,164,184,203,222,241,261,280,298,316,334,351,369,387,405,421,438,454,471,487,504,520,536,551,567,583,599,614,630,646,661,677,693,709,724,740,754,769,783,797,811,826,840,854,869,883,897,911,926,940,953,966,979,991,1004,1017,1030,1043,1056,1069,1081,1094,1107,1120,1133,1146,1159,1171,1184,1197,1210,1223,1236,1249,1261,1274,1287,1300,1313,1326,1339,1351,1364,1377,1390,1404,1419,1433,1447,1461,1476,1490,1504,1519,1533,1547,1561,1576,1590,1604,1619,1633,1647,1661,1676,1690,1710,1730,1750,1770,1790,1810,1830,1851,1873,1894,1916,1937,1959,1980,2003,2026,2049,2071,2094,2117,2140,2163,2186,2209,2231,2254,2277,2300,2321,2343,2364,2386,2407,2429,2450,2471,2493,2514,2536,2557,2579,2600,2636,2671,2707,2743,2779,2814,2850,2871,2893,2914,2936,2957,2979,3000,3019,3037,3056,3074,3093,3111,3130,3149,3167,3186,3204,3223,3241,3260,3274,3289,3303,3317,3331,3346,3360,3374,3389,3403,3417,3431,3446,3460,3470,3480,3490,3500]},
+  ir_gp: { label:'Indian River Grand Parent', market:'Nonni genetici — massima biosicurezza', slaughter:455, targetKg:3.8, defaultN:4000, defaultDown:28, densityKgMin:15, densityKgMax:24, isLayer:false, isBreeder:true,
+    weights: [55,69,84,98,112,126,141,159,178,197,215,234,253,272,289,306,324,341,358,376,393,409,425,441,457,473,488,504,520,535,550,565,581,596,611,626,642,657,672,687,703,718,732,746,759,773,787,801,815,829,843,856,870,884,898,912,924,937,949,962,974,987,999,1012,1024,1037,1049,1061,1074,1086,1099,1111,1124,1136,1149,1161,1174,1186,1199,1211,1224,1236,1249,1261,1273,1286,1298,1311,1323,1336,1348,1362,1376,1390,1404,1418,1431,1445,1459,1473,1487,1501,1515,1528,1542,1556,1570,1584,1598,1612,1625,1639,1659,1678,1698,1717,1736,1756,1775,1796,1817,1837,1858,1879,1900,1921,1943,1965,1987,2009,2031,2054,2076,2098,2120,2142,2164,2187,2209,2231,2252,2273,2293,2314,2335,2356,2376,2397,2418,2439,2460,2480,2501,2522,2557,2591,2626,2661,2695,2730,2764,2785,2806,2827,2848,2868,2889,2910,2928,2946,2964,2982,3000,3018,3036,3054,3072,3090,3108,3126,3144,3162,3176,3190,3204,3218,3231,3245,3259,3273,3287,3301,3315,3328,3342,3356,3366,3376,3385,3395]},
+  pullet: { label:'Pullet / Gallina ovaiola', market:'Ovaiolo', slaughter:112, targetKg:1.7, defaultN:30000, defaultDown:14, densityKgMin:18, densityKgMax:22, isLayer:false,
+    weights: [38,48,60,75,92,112,134,158,185,213,243,276,311,347,385,424,465,507,550,594,638,683,729,775,821,867,913,959,1005,1050,1095,1139,1183,1226,1269,1311,1353,1394,1435,1475,1515,1554,1592,1630,1667,1703,1739,1774,1808,1842,1875,1908,1940,1972,2003]},
+  turkey_light: { label:'Tacchino leggero (8-10 kg)', market:'IT/DE', slaughter:112, targetKg:9.0, defaultN:15000, defaultDown:21, densityKgMin:40, densityKgMax:55, isLayer:false,
+    weights: [55,75,100,132,170,215,266,323,386,456,531,612,698,789,885,985,1089,1197,1309,1424,1542,1663,1786,1911,2038,2167,2297,2428,2560,2692,2825,2958,3091,3224,3357,3489,3620,3750,3879,4007,4133,4257,4379,4499,4617,4733,4847,4958,5067,5173,5276,5377,5474,5569,5660]},
+  turkey_heavy: { label:'Tacchino pesante (16-18 kg)', market:'USA / export', slaughter:140, targetKg:17.0, defaultN:10000, defaultDown:28, densityKgMin:50, densityKgMax:65, isLayer:false,
+    weights: [60,83,112,147,190,241,298,362,432,508,590,677,770,867,969,1075,1185,1299,1417,1539,1663,1791,1921,2054,2189,2327,2466,2607,2749,2893,3038,3184,3330,3478,3626,3774,3923,4072,4221,4370,4519,4668,4817,4966,5115,5263,5411,5558,5704,5849,5992,6134,6275,6413,6550]},
+  layer_cage: { label:'Gallina ovaiola — Multipiano', market:'Industriale — gabbia arricchita', slaughter:504, targetKg:1.8, defaultN:60000, defaultDown:21, densityKgMin:null, densityKgMax:null, isLayer:true,
+    weights: [38,48,60,75,92,112,134,158,185,213,243,276,311,347,385,424,465,507,550,594,638,683,729,775,821,867,913,959,1005,1050,1095,1139,1183,1226,1269,1311,1353,1394,1435,1475,1515,1554,1592,1630,1667,1703,1739,1774,1808,1842,1800,1800,1800,1800,1800]}
+};
+
+const BREED_TEMP_CURVES = {
+  broiler:[[0,33.5],[3,32],[7,30.5],[14,27],[21,24],[28,21],[35,19],[42,18]],
+  ross308:[[0,33.5],[3,32],[7,30.5],[14,27],[21,24],[28,21],[35,19],[42,18]],
+  arbor:[[0,33.5],[3,32],[7,30.5],[14,27],[21,24],[28,21],[35,19],[42,18]],
+  ir_ps:[[0,30],[3,29],[7,28],[14,26],[21,24],[28,23],[42,22],[56,21.5],[84,21],[105,21],[140,21],[175,20.5],[455,20]],
+  ir_gp:[[0,30],[3,29],[7,28],[14,26],[21,24],[28,23],[42,22],[56,21.5],[84,21],[105,21],[140,21],[175,20.5],[455,20]],
+  pullet:[[0,33],[7,31],[14,28],[21,25],[35,22],[49,20],[70,19]],
+  turkey_light:[[0,37],[7,35],[14,32],[21,28],[28,24],[42,20],[70,18]],
+  turkey_heavy:[[0,37],[7,35],[14,32],[21,28],[28,24],[42,20],[70,18]],
+  layer_cage:[[0,33],[7,30],[14,27],[21,24],[42,20],[70,18]],
+};
+
+const BREED_INFO = {
+  broiler:      {fcr:'1.60–1.75', density:'30–38 kg/m²', note:'Ciclo 35-42 gg'},
+  ross308:      {fcr:'1.58–1.72', density:'30–38 kg/m²', note:'Ciclo 35-42 gg'},
+  arbor:        {fcr:'1.60–1.74', density:'30–38 kg/m²', note:'Ciclo 35-42 gg'},
+  ir_ps:        {fcr:'N/A (riprod.)', density:'18–28 kg/m²', note:'Riproduttori — Ciclo 65 sett'},
+  ir_gp:        {fcr:'N/A (riprod.)', density:'15–24 kg/m²', note:'Grand Parent — Ciclo 65 sett'},
+  pullet:       {fcr:'2.10–2.40', density:'18–22 kg/m²', note:'Ciclo 14-16 sett'},
+  turkey_light: {fcr:'2.40–2.70', density:'40–55 kg/m²', note:'Ciclo 16 sett'},
+  turkey_heavy: {fcr:'2.50–2.90', density:'50–65 kg/m²', note:'Ciclo 20 sett'},
+  layer_cage:   {fcr:'2.20–2.50', density:'40–60 capi/m² gabbia × piani', note:'300-320 uova/anno'},
+};
+
+function getTempCurve(){ return BREED_TEMP_CURVES[$('btype')?.value||'broiler']||BREED_TEMP_CURVES.broiler; }
+function getTempTarget(day){
+  const curve=getTempCurve();
+  if(day<=curve[0][0]) return curve[0][1];
+  if(day>=curve[curve.length-1][0]) return curve[curve.length-1][1];
+  for(let k=0;k<curve.length-1;k++){
+    const [d0,t0]=curve[k],[d1,t1]=curve[k+1];
+    if(day>=d0&&day<=d1) return +(t0+(t1-t0)*(day-d0)/(d1-d0)).toFixed(1);
+  }
+  return 18;
+}
+
+function updateBreedInfo(){
+  const bt=$('btype')?.value||'broiler';
+  const bd=BREED_DATA[bt]; const bi=BREED_INFO[bt];
+  const el=$('breed-info'); if(!el||!bd||!bi) return;
+  const A_floor_cur = (num('blen')||100) * (num('bwid')||16);
+  let nRecommended = bd.defaultN;
+  let densityNote = '';
+  if(bd.isLayer){
+    const nPlans=4;
+    nRecommended = Math.round(A_floor_cur * 50 * nPlans / 1.3);
+    densityNote = `⚠️ <strong style="color:var(--acc)">Sistema multipiano</strong> — stima ${nRecommended.toLocaleString('it-IT')} capi`;
+  } else if(bd.densityKgMin && bd.densityKgMax){
+    const nMin = Math.floor(A_floor_cur * bd.densityKgMin / bd.targetKg);
+    const nMax = Math.floor(A_floor_cur * bd.densityKgMax / bd.targetKg);
+    nRecommended = Math.round((nMin+nMax)/2);
+    densityNote = `📐 Per ${A_floor_cur.toLocaleString('it-IT')} m²: <strong style="color:var(--acc2)">${nMin.toLocaleString('it-IT')} – ${nMax.toLocaleString('it-IT')} capi</strong>`;
+  }
+  el.innerHTML=`<strong style="color:var(--acc2)">${bd.label}</strong> — ${bd.market}<br>
+    <span style="font-size:10px;color:var(--muted)">FCR: <strong>${bi.fcr}</strong> | Ciclo: <strong>${bd.slaughter} gg</strong> | Peso: <strong>${bd.targetKg} kg</strong></span><br>
+    <span style="font-size:10px">${densityNote}</span>`;
+  // Pre-fill
+  if($('lw'))  $('lw').value=bd.targetKg;
+  if($('cycle_days'))  $('cycle_days').value=bd.slaughter;
+  if($('down_days'))  $('down_days').value=bd.defaultDown||10;
+  if($('nbirds')) $('nbirds').value=nRecommended;
+  drawCobbMini && drawCobbMini();
+  scheduleSave && scheduleSave();
+}
+['blen','bwid'].forEach(id=>{
+  const el=$(id); if(el) el.addEventListener('input', ()=>{ clearTimeout(el._bt); el._bt=setTimeout(updateBreedInfo,600); });
+});
+
+// ═══ HELPERS ═══
+function fmt(v,d=0){if(v===null||isNaN(v))return'–';return (+v).toLocaleString('it-IT',{minimumFractionDigits:d,maximumFractionDigits:d});}
+function toast(msg,type=''){const t=$('toast');t.textContent=msg;t.className=type;t.style.display='block';setTimeout(()=>t.style.display='none',4000);}
+function dChart(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
+
+// ═══ MAP ═══
+const map=L.map('map',{zoomControl:true}).setView([46.07,11.12],5);
+const tileLight=L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+  {attribution:'© CartoDB © OSM',maxZoom:19,subdomains:'abcd'});
+const tileOSM=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  {attribution:'© OpenStreetMap',maxZoom:18});
+tileLight.addTo(map);
+let tileErrorCount=0;
+tileLight.on('tileerror',()=>{tileErrorCount++;if(tileErrorCount>2&&map.hasLayer(tileLight)){map.removeLayer(tileLight);tileOSM.addTo(map);}});
+let marker=null;
+
+function setLoc(lat,lng,zoom){
+  $('lat').value=lat.toFixed(4); $('lon').value=lng.toFixed(4);
+  map.setView([lat,lng],zoom||7);
+  if(marker) map.removeLayer(marker);
+  marker=L.marker([lat,lng]).addTo(map);
+  const monthly=estimateClimate(lat,lng);
+  storeClimate(monthly,lat,lng,'Estimated — click Fetch ERA5 to improve');
+}
+function setMapView(lat,lng,zoom){
+  map.setView([lat,lng],zoom||7);
+  if(marker) map.removeLayer(marker);
+  marker=L.marker([lat,lng]).addTo(map);
+}
+map.on('click',e=>setLoc(e.latlng.lat,e.latlng.lng));
+document.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>setLoc(+c.dataset.lat,+c.dataset.lon,8)));
+$('gps-btn').addEventListener('click',()=>{
+  if(!navigator.geolocation) return toast('Geolocation not available');
+  navigator.geolocation.getCurrentPosition(p=>setLoc(p.coords.latitude,p.coords.longitude,9),()=>toast('GPS unavailable'));
+});
+['lat','lon'].forEach(id=>$(id).addEventListener('change',()=>{const lt=num('lat'),ln=num('lon');if(lt||ln)setLoc(lt,ln,7);}));
+
+// ═══ CLIMATE ═══
+function estimateClimate(lat,lon){
+  const abs=Math.abs(lat), isS=lat<0;
+  const zones=[{l:10,base:26,amp:3,rh:80},{l:20,base:23,amp:7,rh:75},{l:30,base:18,amp:12,rh:65},
+    {l:40,base:11,amp:16,rh:65},{l:50,base:6,amp:18,rh:70},{l:60,base:1,amp:17,rh:75},{l:90,base:-5,amp:14,rh:80}];
+  const z=zones.find(z=>abs<=z.l)||zones[zones.length-1];
+  return Array(12).fill(null).map((_,i)=>{
+    const ang=Math.PI*(i-(isS?0:6))/6;
+    const seas=Math.cos(ang)*z.amp;
+    const mid=z.base+seas;
+    const range=8+Math.abs(seas)/z.amp*4;
+    return {tmax:+(mid+range/2).toFixed(1),tmin:+(mid-range/2).toFixed(1),rh:z.rh-Math.round(seas/z.amp*12)};
+  });
+}
+
+async function fetchClimate(){
+  const lat=num('lat'),lon=num('lon');
+  if(!lat&&!lon) return toast('Set coordinates first');
+  const btn=$('fetch-btn'),sp=$('sp');
+  btn.disabled=true; sp.style.display='inline-block';
+  $('apidot').className='dot'; $('apist').textContent='Fetching…';
+  const url=`https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=2020-01-01&end_date=2022-12-31&daily=temperature_2m_max,temperature_2m_min,relative_humidity_2m_mean&timezone=UTC`;
+  try{
+    const res=await fetch(url,{signal:AbortSignal.timeout(15000)});
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const d=await res.json();
+    if(!d.daily||!d.daily.time) throw new Error('No daily data');
+    const tmax_sum=Array(12).fill(0),tmin_sum=Array(12).fill(0),rh_sum=Array(12).fill(0),count=Array(12).fill(0);
+    d.daily.time.forEach((dateStr,i)=>{
+      const mo=new Date(dateStr).getUTCMonth();
+      const tx=d.daily.temperature_2m_max[i],tn=d.daily.temperature_2m_min[i],rh=d.daily.relative_humidity_2m_mean?.[i]??60;
+      if(tx!=null&&tn!=null){tmax_sum[mo]+=tx;tmin_sum[mo]+=tn;rh_sum[mo]+=rh;count[mo]++;}
+    });
+    const monthly=Array(12).fill(null).map((_,i)=>{const n=Math.max(count[i],1);return{tmax:+(tmax_sum[i]/n).toFixed(1),tmin:+(tmin_sum[i]/n).toFixed(1),rh:+(rh_sum[i]/n).toFixed(0)};});
+    storeClimate(monthly,lat,lon,'Archive 2020–2022');
+    toast('Dati climatici reali caricati ✓','ok');
+  }catch(e){
+    $('apist').textContent='Estimated';
+    toast('API non disponibile — dati stimati attivi.','ok');
+  }finally{btn.disabled=false;sp.style.display='none';}
+}
+$('fetch-btn').addEventListener('click',fetchClimate);
+
+function storeClimate(monthly,lat,lon,src){
+  const T_win=+Math.min(...monthly.map(m=>m.tmin)).toFixed(1);
+  const T_sum=+Math.max(...monthly.map(m=>m.tmax)).toFixed(1);
+  const hotIdx=monthly.reduce((bi,m,i)=>m.tmax>monthly[bi].tmax?i:bi,0);
+  const RH_sum=monthly[hotIdx].rh;
+  const RH_mean=+(monthly.reduce((s,m)=>s+m.rh,0)/12).toFixed(0);
+  const _originalMonthly=monthly.map(m=>({...m}));
+  G.climate={monthly,T_win,T_sum,RH_sum,RH_mean,hotIdx,lat,lon,src,_originalMonthly};
+  renderClimateStrip();
+  const isReal=src.includes('Archive');
+  $('apidot').className=isReal?'dot live':'dot';
+  $('apist').textContent=isReal?'Dati reali ✓':'Stimato';
+}
+
+function renderClimateStrip(){
+  const c=G.climate; if(!c) return;
+  $('cs-tw').textContent=c.T_win.toFixed(1)+'°C';
+  $('cs-ts').textContent=c.T_sum.toFixed(1)+'°C';
+  $('cs-rh').textContent=c.RH_sum.toFixed(0)+'%';
+  const rhLbl=$('cs-rh-lbl'); if(rhLbl) rhLbl.textContent='RH '+MLBL_IT[c.hotIdx||6];
+  $('cs-loc').textContent=Math.abs(c.lat).toFixed(2)+(c.lat>=0?'°N':'°S');
+  const srcEl=$('cs-src'); if(srcEl) srcEl.textContent=c.src||'—';
+  // Mini chart
+  const cv=$('mchart'),ctx=cv.getContext('2d');
+  cv.width=200; const W=200,H=68;
+  ctx.clearRect(0,0,W,H);
+  const allT=c.monthly.flatMap(m=>[m.tmax,m.tmin]);
+  const maxT=Math.max(...allT)||40,minT=Math.min(...allT)||-15;
+  const rng=Math.max(maxT-minT,1);
+  const bw=(W-16)/12;
+  c.monthly.forEach((m,i)=>{
+    const x=8+i*bw;
+    const hmax=(m.tmax-minT)/rng*(H-10),hmin=(m.tmin-minT)/rng*(H-10);
+    ctx.fillStyle=m.tmax>30?'rgba(239,68,68,.7)':m.tmax<5?'rgba(56,189,248,.7)':'rgba(245,158,11,.7)';
+    ctx.beginPath();ctx.roundRect(x,H-Math.max(hmax,3)-4,bw-2,Math.max(hmax,3),2);ctx.fill();
+    ctx.fillStyle='rgba(56,189,248,.3)';
+    ctx.beginPath();ctx.roundRect(x,H-Math.max(hmin,2)-4,bw-2,Math.max(hmin,2),2);ctx.fill();
+  });
+  $('cstrip').classList.add('vis');
+  renderClimateEditTable();
+}
+
+// ═══ CLIMATE EDIT TABLE ═══
+function renderClimateEditTable(){
+  const c=G.climate; if(!c) return;
+  const tbody=$('climate-edit-body'); if(!tbody) return;
+  tbody.innerHTML='';
+  c.monthly.forEach((m,i)=>{
+    const hot=i===c.hotIdx, cold=m.tmin===c.T_win;
+    const tr=document.createElement('tr');
+    tr.style.cssText=`border-bottom:1px solid rgba(255,255,255,.04);${hot?'background:rgba(239,68,68,.06)':''}${cold?'background:rgba(56,189,248,.06)':''}`;
+    tr.innerHTML=`
+      <td style="padding:4px 8px;font-weight:700;color:${hot?'var(--acc)':cold?'var(--acc2)':'var(--txt)'}">${MLBL_IT[i]} ${hot?'🌡':''}${cold?'❄️':''}</td>
+      <td style="padding:2px 4px"><input type="number" value="${m.tmax.toFixed(1)}" step="0.1" data-mi="${i}" data-field="tmax" style="width:64px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:3px;padding:3px 6px;color:var(--acc);font-family:'DM Mono',monospace;font-size:10px;text-align:right;outline:none" oninput="climateFieldChanged(this)"></td>
+      <td style="padding:2px 4px"><input type="number" value="${m.tmin.toFixed(1)}" step="0.1" data-mi="${i}" data-field="tmin" style="width:64px;background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.3);border-radius:3px;padding:3px 6px;color:var(--acc2);font-family:'DM Mono',monospace;font-size:10px;text-align:right;outline:none" oninput="climateFieldChanged(this)"></td>
+      <td style="padding:2px 4px"><input type="number" value="${m.rh.toFixed(0)}" step="1" min="0" max="100" data-mi="${i}" data-field="rh" style="width:52px;background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.25);border-radius:3px;padding:3px 6px;color:var(--txt);font-family:'DM Mono',monospace;font-size:10px;text-align:right;outline:none" oninput="climateFieldChanged(this)"></td>`;
+    tbody.appendChild(tr);
+  });
+}
+function climateFieldChanged(input){
+  const mi=parseInt(input.dataset.mi),field=input.dataset.field,val=parseFloat(input.value);
+  if(isNaN(val)) return;
+  G.climate.monthly[mi][field]=val;
+  recomputeClimateSummary();
+  renderClimateStrip();
+}
+function applyClimateEdits(){
+  document.querySelectorAll('#climate-edit-body input').forEach(inp=>{
+    const mi=parseInt(inp.dataset.mi),field=inp.dataset.field,val=parseFloat(inp.value);
+    if(!isNaN(val)) G.climate.monthly[mi][field]=+(+val).toFixed(1);
+  });
+  recomputeClimateSummary();renderClimateStrip();saveState();
+  toast('✅ Dati climatici aggiornati','ok');
+}
+function resetClimateEdits(){
+  if(!G.climate?._originalMonthly) return;
+  G.climate.monthly=G.climate._originalMonthly.map(m=>({...m}));
+  recomputeClimateSummary();renderClimateStrip();
+  toast('↺ Dati ripristinati ai valori originali');
+}
+function recomputeClimateSummary(){
+  const c=G.climate;
+  c.T_win=+Math.min(...c.monthly.map(m=>m.tmin)).toFixed(1);
+  c.T_sum=+Math.max(...c.monthly.map(m=>m.tmax)).toFixed(1);
+  c.hotIdx=c.monthly.reduce((bi,m,i)=>m.tmax>c.monthly[bi].tmax?i:bi,0);
+  c.RH_sum=c.monthly[c.hotIdx].rh;
+  c.RH_mean=+(c.monthly.reduce((s,m)=>s+m.rh,0)/12).toFixed(0);
+}
+function toggleClimateTable(){
+  const wrap=$('climate-table-wrap'),btn=$('btn-edit-climate');
+  if(!wrap) return;
+  const open=wrap.style.display==='block';
+  wrap.style.display=open?'none':'block';
+  if(btn) btn.textContent=open?'✏️ Modifica dati':'🔼 Chiudi tabella';
+  if(!open) renderClimateEditTable();
+}
+
+// ═══ SAVE / LOAD STATE (localStorage) ═══
+const SAVE_KEY = 'tecnoclimaInputState_v1';
+const SAVE_FIELDS = [
+  'proj_title','lat','lon',
+  'blen','bwid','beave','hridge','mat_sel','uval',
+  'btype','nbirds','lw','cycle_days','down_days',
+  'tinw','tins','qmin','vtun','vpad','heta',
+  'htype','heat_sf','humid_override',
+  'fantun','pad_type','pad_thick','pad_height',
+  'n_houses','boq_notes',
+];
+const SAVE_RADIOS = ['roofpitch'];
+const SAVE_CHECKS = ['humid_enabled'];
+
+function saveState(){
+  const state={_ts:Date.now()};
+  SAVE_FIELDS.forEach(id=>{const el=$(id);if(el) state[id]=el.value;});
+  SAVE_RADIOS.forEach(name=>{const el=document.querySelector(`input[name="${name}"]:checked`);if(el) state['radio_'+name]=el.value;});
+  SAVE_CHECKS.forEach(id=>{const el=$(id);if(el) state['check_'+id]=el.checked;});
+  if(G.climate) state._climate=JSON.stringify(G.climate);
+  if(G_boq_custom.length>0) state._boq_custom=JSON.stringify(G_boq_custom);
+  try{localStorage.setItem(SAVE_KEY,JSON.stringify(state));return true;}catch(e){return false;}
+}
+function loadState(){
+  try{
+    const raw=localStorage.getItem(SAVE_KEY);if(!raw) return false;
+    const state=JSON.parse(raw);
+    SAVE_FIELDS.forEach(id=>{const el=$(id);if(el&&state[id]!==undefined) el.value=state[id];});
+    SAVE_RADIOS.forEach(name=>{const val=state['radio_'+name];if(val){const el=document.querySelector(`input[name="${name}"][value="${val}"]`);if(el) el.checked=true;}});
+    SAVE_CHECKS.forEach(id=>{const el=$(id);if(el&&state['check_'+id]!==undefined) el.checked=state['check_'+id];});
+    if(state._climate){try{G.climate=JSON.parse(state._climate);renderClimateStrip();}catch(e){}}
+    if(state._boq_custom){try{G_boq_custom=JSON.parse(state._boq_custom);}catch(e){}}
+    updateUfromMaterial();updatePadInfo();updateHumidToggle();drawRoofDiagram();
+    const _lat=num('lat'),_lon=num('lon');
+    if(_lat&&_lon) setMapView(_lat,_lon,7);
+    renderBoqTable();
+    return true;
+  }catch(e){return false;}
+}
+
+let _saveTimer=null;
+function scheduleSave(){clearTimeout(_saveTimer);_saveTimer=setTimeout(()=>{saveState();showSaveBadge();},2000);}
+function showSaveBadge(){const b=$('save-badge');if(!b) return;b.textContent='✓ saved';b.style.opacity='1';setTimeout(()=>b.style.opacity='.4',1500);}
+function attachAutosave(){
+  [...SAVE_FIELDS,...SAVE_RADIOS,...SAVE_CHECKS].forEach(id=>{
+    const el=$(id)||document.querySelector(`input[name="${id}"]`);
+    if(el) el.addEventListener('input',scheduleSave);
+    if(el) el.addEventListener('change',scheduleSave);
+  });
+  document.querySelectorAll('input[name="roofpitch"]').forEach(r=>r.addEventListener('change',scheduleSave));
+}
+
+// ═══ EXPORT / IMPORT JSON ═══
+function saveProject(){
+  const proj=($('proj_title')?.value||'Progetto').trim().replace(/[^a-zA-Z0-9_\-àèéìòù ]/g,'').replace(/ +/g,'_')||'Progetto';
+  const date=new Date().toISOString().slice(0,10);
+  const fields={};
+  SAVE_FIELDS.forEach(id=>{const el=$(id);if(el) fields[id]=el.value;});
+  const radios={};
+  SAVE_RADIOS.forEach(n=>{const el=document.querySelector(`input[name="${n}"]:checked`);if(el) radios[n]=el.value;});
+  const checks={};
+  SAVE_CHECKS.forEach(id=>{const el=$(id);if(el) checks[id]=el.checked;});
+  // Filter non-empty BOQ rows
+  const boqFiltered=G_boq_custom.filter(r=>r.label||r.model||r.qty);
+  const payload={
+    _format:'TecnoclimaCore',
+    _version:'5.0-input',
+    _app:'Tecnoclima Core Input',
+    _saved:new Date().toISOString(),
+    _mode:'poultry',
+    progetto:$('proj_title')?.value||'',
+    fields,radios,checks,
+    climate:G.climate?G.climate:null,
+    boq_custom:boqFiltered.length>0?boqFiltered:null,
+    boq_notes:($('boq_notes')?.value||'').trim()||null,
+  };
+  const json=JSON.stringify(payload,null,2);
+  const blob=new Blob([json],{type:'application/json;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=`${proj}_${date}.json`;
+  document.body.appendChild(a);a.click();
+  document.body.removeChild(a);URL.revokeObjectURL(url);
+  showSaveBadge();
+  toast(`💾 Progetto esportato: ${proj}_${date}.json`,'ok');
+}
+
+function loadProjectFile(event){
+  const file=event.target.files[0];if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const payload=JSON.parse(e.target.result);
+      if(payload._format!=='TecnoclimaCore'&&payload._format!=='TecnoclimaCoreRAO'){
+        toast('⚠️ File non riconosciuto');return;
+      }
+      if(payload.fields){
+        SAVE_FIELDS.forEach(id=>{const el=$(id);if(el&&payload.fields[id]!==undefined) el.value=payload.fields[id];});
+      }
+      if(payload.radios){
+        SAVE_RADIOS.forEach(n=>{const val=payload.radios[n];if(val){const el=document.querySelector(`input[name="${n}"][value="${val}"]`);if(el) el.checked=true;}});
+      }
+      if(payload.checks){
+        SAVE_CHECKS.forEach(id=>{const el=$(id);if(el&&payload.checks[id]!==undefined) el.checked=payload.checks[id];});
+      }
+      if(payload.climate){G.climate=payload.climate;renderClimateStrip();}
+      if(payload.boq_custom){G_boq_custom=payload.boq_custom;}else{G_boq_custom=[];}
+      // Also accept boq_overrides from full ClimaCore if present — ignore (input-only doesn't use overrides)
+      updateUfromMaterial();updatePadInfo();updateBreedInfo();updateHumidToggle();drawRoofDiagram();
+      const _lat=num('lat'),_lon=num('lon');
+      if(_lat&&_lon) setMapView(_lat,_lon,7);
+      renderBoqTable();
+      saveState();showSaveBadge();
+      toast(`📂 Progetto "${payload.progetto||file.name}" importato`,'ok');
+    }catch(err){
+      toast('❌ Errore lettura file: '+err.message);
+    }
+    event.target.value='';
+  };
+  reader.readAsText(file,'utf-8');
+}
+
+// ═══ BOQ TABLE ═══
+function renderBoqTable(){
+  // Ensure at least one empty row
+  if(G_boq_custom.length===0) G_boq_custom.push({label:'',model:'',qty:'',unit:'pz',note:''});
+  const hasEmpty=G_boq_custom.some((r,i)=>i===G_boq_custom.length-1&&!r.label&&!r.model&&!r.qty);
+  if(!hasEmpty) G_boq_custom.push({label:'',model:'',qty:'',unit:'pz',note:''});
+  const tbody=$('boq-body');if(!tbody) return;
+  tbody.innerHTML='';
+  const inputStyle='width:100%;padding:4px 6px;border:1px solid var(--bord);border-radius:3px;background:var(--inp);color:var(--txt);font-size:10px;font-family:inherit;outline:none';
+  G_boq_custom.forEach((r,i)=>{
+    const filled=r.label||r.model||r.qty;
+    const tr=document.createElement('tr');
+    tr.style.cssText=filled?'background:rgba(139,92,246,.04)':'';
+    tr.innerHTML=`
+      <td><input type="text" value="${r.label||''}" placeholder="Articolo..." data-ci="${i}" data-cf="label" oninput="onBoqInput(this)" style="${inputStyle};font-weight:600"></td>
+      <td><input type="text" value="${r.model||''}" placeholder="Modello / descrizione..." data-ci="${i}" data-cf="model" oninput="onBoqInput(this)" style="${inputStyle}"></td>
+      <td><input type="number" value="${r.qty||''}" placeholder="0" min="0" data-ci="${i}" data-cf="qty" oninput="onBoqInput(this)" style="${inputStyle};width:60px;text-align:center"></td>
+      <td><input type="text" value="${r.unit||'pz'}" data-ci="${i}" data-cf="unit" oninput="onBoqInput(this)" style="${inputStyle};width:45px;text-align:center"></td>
+      <td><input type="text" value="${r.note||''}" placeholder="Note..." data-ci="${i}" data-cf="note" oninput="onBoqInput(this)" style="${inputStyle}"></td>
+      <td>${filled?`<button onclick="removeBoqRow(${i})" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:12px" title="Rimuovi">✕</button>`:''}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+function onBoqInput(el){
+  const i=parseInt(el.dataset.ci),f=el.dataset.cf;
+  G_boq_custom[i][f]=el.value;
+  // Auto-add row when typing in last empty row
+  if(i===G_boq_custom.length-1&&el.value.trim()){
+    G_boq_custom.push({label:'',model:'',qty:'',unit:'pz',note:''});
+    renderBoqTable();
+    // Refocus the input the user was typing in
+    const inputs=document.querySelectorAll(`[data-ci="${i}"][data-cf="${f}"]`);
+    if(inputs.length) inputs[0].focus();
+  }
+  scheduleSave();
+}
+function removeBoqRow(i){
+  G_boq_custom.splice(i,1);
+  renderBoqTable();
+  scheduleSave();
+}
+
+// ═══ ROOF DIAGRAM ═══
+function drawRoofDiagram(){
+  const W=num('bwid')||16,H=num('beave')||2.4,H1=num('hridge')||3.5;
+  const nP=document.querySelector('input[name="roofpitch"]:checked')?.value==='1'?1:2;
+  const svg=$('roof-svg');if(!svg) return;
+  const vH=72,margin_x=42,margin_right=36,margin_y=14,margin_bot=18;
+  const avail_w=300-margin_x-margin_right,avail_h=vH-margin_y-margin_bot;
+  const sc=Math.min(avail_w/W,avail_h/H1);
+  const dw=W*sc,dH_sc=(H1-H)*sc,bH=H*sc;
+  const ox=margin_x,oy=margin_y+(avail_h-H1*sc);
+  const base_y=oy+dH_sc+bH,dim_y=base_y+5;
+  const H_avg=H+(H1-H)/2;
+  const A_cs_val=(W*H_avg).toFixed(2);
+  const H_avg_sc=H_avg*sc;
+  let path='';
+  if(nP===1){
+    const pts=[[ox,base_y],[ox+dw,base_y],[ox+dw,oy],[ox,oy+dH_sc]];
+    path=pts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ')+'Z';
+  }else{
+    const pts=[[ox,base_y],[ox+dw,base_y],[ox+dw,oy+dH_sc],[ox+dw/2,oy],[ox,oy+dH_sc]];
+    path=pts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ')+'Z';
+  }
+  const acs_top_y=base_y-H_avg_sc;
+  const acs_path=`M${ox.toFixed(1)},${base_y.toFixed(1)} L${(ox+dw).toFixed(1)},${base_y.toFixed(1)} L${(ox+dw).toFixed(1)},${acs_top_y.toFixed(1)} L${ox.toFixed(1)},${acs_top_y.toFixed(1)}Z`;
+  svg.innerHTML=`
+    <path d="${acs_path}" fill="rgba(56,189,248,.18)" stroke="none"/>
+    <line x1="${ox}" y1="${acs_top_y.toFixed(1)}" x2="${(ox+dw).toFixed(1)}" y2="${acs_top_y.toFixed(1)}" stroke="#38bdf8" stroke-width="1" stroke-dasharray="4,3"/>
+    <path d="${path}" fill="rgba(46,109,164,.12)" stroke="#4A90C4" stroke-width="1.5"/>
+    <line x1="${ox-3}" y1="${oy+dH_sc}" x2="${ox-3}" y2="${base_y}" stroke="#64748b" stroke-width="1" stroke-dasharray="2,2"/>
+    <text x="${ox-5}" y="${(oy+dH_sc+bH/2).toFixed(1)}" fill="#64748b" font-size="7.5" text-anchor="end" dominant-baseline="middle">H=${H}m</text>
+    <line x1="${(ox+dw+3).toFixed(1)}" y1="${oy}" x2="${(ox+dw+3).toFixed(1)}" y2="${base_y}" stroke="#f59e0b" stroke-width="1" stroke-dasharray="2,2"/>
+    <text x="${(ox+dw+5).toFixed(1)}" y="${(oy+H1*sc/2).toFixed(1)}" fill="#f59e0b" font-size="7.5" text-anchor="start" dominant-baseline="middle">H1=${H1}m</text>
+    <text x="${(ox+dw+5).toFixed(1)}" y="${acs_top_y.toFixed(1)}" fill="#38bdf8" font-size="7" text-anchor="start" dominant-baseline="auto">H̄=${H_avg.toFixed(2)}m</text>
+    <line x1="${ox}" y1="${dim_y}" x2="${(ox+dw).toFixed(1)}" y2="${dim_y}" stroke="#64748b" stroke-width="1"/>
+    <line x1="${ox}" y1="${dim_y-3}" x2="${ox}" y2="${dim_y+3}" stroke="#64748b" stroke-width="1"/>
+    <line x1="${(ox+dw).toFixed(1)}" y1="${dim_y-3}" x2="${(ox+dw).toFixed(1)}" y2="${dim_y+3}" stroke="#64748b" stroke-width="1"/>
+    <text x="${(ox+dw/2).toFixed(1)}" y="${dim_y+9}" fill="#64748b" font-size="7.5" text-anchor="middle">W=${W}m</text>
+    <text x="${(ox+dw/2).toFixed(1)}" y="${(acs_top_y+H_avg_sc/2).toFixed(1)}" fill="#38bdf8" font-size="7" text-anchor="middle" dominant-baseline="middle" font-weight="700">A_cs</text>
+    <text x="150" y="11" fill="#4A90C4" font-size="7.5" text-anchor="middle" font-weight="700">${nP===1?'1 falda':'2 falde'}</text>`;
+  const acs_el=$('acs-display');
+  if(acs_el) acs_el.innerHTML=`🔵 A_cs = W × H̄ = ${W} × ${H_avg.toFixed(2)} = <strong>${A_cs_val} m²</strong>`;
+  ['pitch1-lbl','pitch2-lbl'].forEach(id=>{
+    const el=$(id);if(!el) return;
+    const isActive=el.id===`pitch${nP}-lbl`;
+    el.style.borderColor=isActive?'var(--brand2)':'var(--bord)';
+    el.style.color=isActive?'var(--brand2)':'var(--muted)';
+    el.style.background=isActive?'var(--brand-lt)':'transparent';
+  });
+}
+['bwid','beave','hridge'].forEach(id=>{const el=$(id);if(el) el.addEventListener('input',drawRoofDiagram);});
+document.querySelectorAll('input[name="roofpitch"]').forEach(r=>r.addEventListener('change',drawRoofDiagram));
+drawRoofDiagram();
+
+// ═══ COBB MINI CHART ═══
+function drawCobbMini(){
+  const canvas=$('cobbMiniChart');if(!canvas) return;
+  dChart('cobbMiniChart');
+  const bt=$('btype')?.value||'broiler';
+  const bd=BREED_DATA[bt]||BREED_DATA.broiler;
+  const breedWeights=bd.weights;
+  const maxDay=Math.min(breedWeights.length,bd.isBreeder?200:70);
+  const days=Array.from({length:maxDay},(_,i)=>i+1);
+  const weights=days.map(d=>breedWeights[Math.min(d-1,breedWeights.length-1)]);
+  const target=num('lw')||bd.targetKg;
+  const slaughter=Math.min(num('cycle_days')||bd.slaughter,maxDay);
+  const titleEl=$('cobb-chart-title');
+  if(titleEl) titleEl.textContent=bd.label+' — Curva peso vivo g/capo per giorno';
+  const bi=BREED_INFO[bt];
+  const infoEl=$('cobb-mini-info');
+  if(infoEl&&bi) infoEl.innerHTML=
+    `<strong style="color:var(--acc)">▲ Marker</strong> = Gg.${num('cycle_days')||bd.slaughter} &nbsp;|&nbsp;
+     <strong style="color:rgba(245,158,11,.6)">- - -</strong> = ${target} kg target &nbsp;|&nbsp;
+     FCR: <strong>${bi.fcr}</strong> &nbsp;|&nbsp; Densità: <strong>${bi.density}</strong>`;
+  charts.cobbMiniChart=new Chart(canvas.getContext('2d'),{type:'line',
+    data:{labels:days,datasets:[
+      {label:bd.label+' (g/capo)',data:weights,borderColor:co.green,backgroundColor:'rgba(16,185,129,.08)',fill:true,tension:.4,pointRadius:0,borderWidth:2,yAxisID:'yW'},
+      {label:`Target ${target}kg`,data:days.map(()=>target*1000),borderColor:'rgba(245,158,11,.5)',borderDash:[4,3],pointRadius:0,borderWidth:1,yAxisID:'yW'},
+      {label:`Gg.${slaughter}`,data:days.map(d=>d===slaughter?breedWeights[Math.min(slaughter-1,breedWeights.length-1)]:null),borderColor:'rgba(245,158,11,1)',backgroundColor:'rgba(245,158,11,1)',pointRadius:days.map(d=>d===slaughter?8:0),pointStyle:'triangle',borderWidth:2,showLine:true,yAxisID:'yW'},
+      {label:'T setpoint (°C)',data:days.map(d=>+(getTempTarget(d)).toFixed(1)),borderColor:'rgba(239,68,68,.7)',backgroundColor:'transparent',borderDash:[3,2],tension:.4,pointRadius:0,borderWidth:1.5,yAxisID:'yT'},
+    ]},
+    options:{responsive:true,
+      plugins:{legend:{labels:{color:co.muted,font:{size:8},boxWidth:8}}},
+      scales:{
+        x:{ticks:{color:co.muted,font:{size:7},maxTicksLimit:10},grid:{color:co.grid},title:{display:true,text:'Giorno',color:co.muted,font:{size:8}}},
+        yW:{position:'left',ticks:{color:co.green,font:{size:7},callback:v=>v>=1000?(v/1000).toFixed(1)+'kg':v+'g'},grid:{color:co.grid},title:{display:true,text:'g/capo',color:co.green,font:{size:8}},min:0},
+        yT:{position:'right',ticks:{color:'rgba(239,68,68,.7)',font:{size:7},callback:v=>v+'°C'},grid:{display:false},title:{display:true,text:'°C',color:'rgba(239,68,68,.7)',font:{size:8}},min:10,max:38},
+      }
+    }
+  });
+}
+['cycle_days','lw','btype'].forEach(id=>{const el=$(id);if(el) el.addEventListener('change',drawCobbMini);if(el&&id!=='btype') el.addEventListener('input',drawCobbMini);});
+setTimeout(drawCobbMini,300);
+
+// ═══ GEO PRESET & FAN ═══
+function applyGeoPreset(row){
+  document.querySelectorAll('.geo-row').forEach(r=>r.classList.remove('selected'));
+  row.classList.add('selected');
+  const set=(id,val)=>{const el=$(id);if(el){el.value=val;el.dispatchEvent(new Event('input'));}};
+  set('blen',row.dataset.l);set('bwid',row.dataset.w);
+  set('beave',row.dataset.h);set('hridge',row.dataset.h1);
+  set('nbirds',row.dataset.birds);set('lw',row.dataset.lw);
+  const radio=document.querySelector(`input[name="roofpitch"][value="${row.dataset.pitch}"]`);
+  if(radio){radio.checked=true;radio.dispatchEvent(new Event('change'));}
+  drawRoofDiagram();
+  toast('✅ Preset applicato','ok');
+}
+
+function onFanChange(){
+  const key=$('fantun').value;
+  const hasShutter=FAN_CATALOG[key].hasShutter;
+  $('shutter-note').style.display=hasShutter?'block':'none';
+  $('no-shutter-note').style.display=hasShutter?'none':'block';
+}
+onFanChange();
+
+// ═══ INIT ═══
+const restored=loadState();
+if(!restored) renderBoqTable();
+attachAutosave();
+updateBreedInfo();
+setLoc(num('lat')||46.07,num('lon')||11.12,5);
+</script>
+</body>
+</html>
